@@ -1,146 +1,195 @@
+
 # Stripe API FastAPI Application
 
-## 概要
+このプロジェクトは、Stripe APIを使用して顧客情報、サブスクリプション、請求書、支払い、商品情報を取得するFastAPIアプリケーションです。DockerとUbuntu 24.04を使用して簡単に実行できます。
 
-このプロジェクトは、StripeのAPIを使用して顧客情報、サブスクリプション、請求書、支払い、および商品情報を取得するFastAPIアプリケーションです。メールアドレスを使用して、関連する情報をJSON形式で取得できます。
+## セットアップ手順 (Ubuntu 24.04)
 
-## 機能
+### 1. Dockerのインストール
 
-- 顧客情報の取得
-- サブスクリプション情報の取得
-- 請求書情報の取得
-- 支払い情報の取得
-- 商品情報の取得
+```bash
+# システムパッケージを更新
+sudo apt update
+sudo apt upgrade -y
 
-## 技術スタック
+# 必要な依存関係をインストール
+sudo apt install apt-transport-https ca-certificates curl software-properties-common -y
 
-- Python 3.9+
-- FastAPI
-- Stripe Python Library
-- Docker
+# Dockerの公式GPGキーを追加
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
 
-## セットアップ
+# Dockerリポジトリを追加
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
 
-### 前提条件
+# パッケージリストを更新
+sudo apt update
 
-- Python 3.9以上
-- pip
-- Docker (オプション)
+# Dockerをインストール
+sudo apt install docker-ce docker-ce-cli containerd.io -y
 
-### インストール
+# Dockerサービスを開始し、自動起動を有効化
+sudo systemctl start docker
+sudo systemctl enable docker
 
-1. リポジトリをクローンします：
-
+# 現在のユーザーをdockerグループに追加（再ログインが必要）
+sudo usermod -aG docker $USER
 ```
 
-git clone [https://github.com/yourusername/stripe-api-fastapi.git](https://github.com/yourusername/stripe-api-fastapi.git)
-cd stripe-api-fastapi
+### 2. Docker Composeのインストール
 
+```shellscript
+# Docker Composeをダウンロード
+sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+
+# 実行権限を付与
+sudo chmod +x /usr/local/bin/docker-compose
 ```
 
-2. 仮想環境を作成し、アクティベートします：
+### 3. プロジェクトのセットアップ
 
-```
+```shellscript
+# リポジトリをクローン
+git clone https://github.com/DaisukeHori/stripe_api-fastapi.git
+cd stripe_api-fastapi
 
-python -m venv venv
-source venv/bin/activate  # Linuxの場合
-
-# venv\Scripts\activate  # Windowsの場合
-
-```
-
-3. 依存関係をインストールします：
-
-```
-
-pip install -r requirements.txt
-
-```
-
-4. `.env`ファイルを作成し、Stripe APIキーを設定します：
-
-```
-
+# .envファイルを作成し、必要な環境変数を設定
+cat << EOF > .env
 STRIPE_API_KEY=your_stripe_api_key_here
-
+AUTH_KEY=your_secret_auth_key_here
+EOF
 ```
 
-### Dockerを使用する場合
+### 4. アプリケーションの実行
 
-1. Dockerイメージをビルドします：
-
+```shellscript
+# Dockerイメージをビルドして実行
+docker-compose up --build
 ```
 
-docker-compose build
+アプリケーションが正常に起動すると、[http://localhost:8000](http://localhost:8000) でアクセスできます。
 
+## API使用例
+
+APIを使用するには、リクエストヘッダーに`X-Auth-Key`を含める必要があります。以下は各エンドポイントの使用例です。
+
+### 顧客情報の取得
+
+```shellscript
+curl -H "X-Auth-Key: your_secret_auth_key_here" http://localhost:8000/api/customers/example@email.com
 ```
 
-2. Dockerコンテナを起動します：
+レスポンス例：
 
+```json
+{
+  "customers": [
+    {
+      "id": "cus_1234567890",
+      "object": "customer",
+      "email": "example@email.com",
+      "name": "John Doe",
+      "created": 1634567890
+    }
+  ]
+}
 ```
 
-docker-compose up
+### サブスクリプション情報の取得
 
+```shellscript
+curl -H "X-Auth-Key: your_secret_auth_key_here" http://localhost:8000/api/subscriptions/example@email.com
 ```
 
-## 使用方法
+レスポンス例：
 
-### ローカルで実行
-
-1. アプリケーションを起動します：
-
+```json
+{
+  "subscriptions": [
+    {
+      "id": "sub_1234567890",
+      "object": "subscription",
+      "customer": "cus_1234567890",
+      "status": "active",
+      "current_period_start": 1634567890,
+      "current_period_end": 1637159890
+    }
+  ]
+}
 ```
 
-uvicorn app.main:app --reload
+### 請求書情報の取得
 
+```shellscript
+curl -H "X-Auth-Key: your_secret_auth_key_here" http://localhost:8000/api/invoices/example@email.com
 ```
 
-2. ブラウザで `http://localhost:8000/docs` にアクセスし、Swagger UIを使用してAPIをテストします。
+レスポンス例：
 
-### Dockerで実行
-
-1. Dockerコンテナを起動します：
-
+```json
+{
+  "invoices": [
+    {
+      "id": "in_1234567890",
+      "object": "invoice",
+      "customer": "cus_1234567890",
+      "status": "paid",
+      "total": 2000,
+      "currency": "usd"
+    }
+  ]
+}
 ```
 
-docker-compose up
+### 支払い情報の取得
 
+```shellscript
+curl -H "X-Auth-Key: your_secret_auth_key_here" http://localhost:8000/api/payments/example@email.com
 ```
 
-2. ブラウザで `http://localhost:8000/docs` にアクセスし、Swagger UIを使用してAPIをテストします。
+レスポンス例：
 
-## APIエンドポイント
-
-- `/api/customers/{email}`: 指定されたメールアドレスに関連する顧客情報を取得
-- `/api/subscriptions/{email}`: 指定されたメールアドレスに関連するサブスクリプション情報を取得
-- `/api/invoices/{email}`: 指定されたメールアドレスに関連する請求書情報を取得
-- `/api/payments/{email}`: 指定されたメールアドレスに関連する支払い情報を取得
-- `/api/products/{email}`: 指定されたメールアドレスに関連する商品情報を取得
-
-## テスト
-
-テストを実行するには、以下のコマンドを使用します：
-
+```json
+{
+  "payments": [
+    {
+      "id": "pi_1234567890",
+      "object": "payment_intent",
+      "amount": 2000,
+      "currency": "usd",
+      "status": "succeeded",
+      "customer": "cus_1234567890"
+    }
+  ]
+}
 ```
 
-pytest
+### 商品情報の取得
 
+```shellscript
+curl -H "X-Auth-Key: your_secret_auth_key_here" http://localhost:8000/api/products/example@email.com
+```
+
+レスポンス例：
+
+```json
+{
+  "products": [
+    {
+      "id": "prod_1234567890",
+      "object": "product",
+      "name": "Premium Plan",
+      "active": true,
+      "description": "Access to all premium features"
+    }
+  ]
+}
 ```
 
 ## 注意事項
 
-- 本番環境では、適切なセキュリティ対策（HTTPS、認証など）を実装してください。
-- Stripe APIキーは安全に管理し、公開リポジトリにコミットしないよう注意してください。
-- 大量のデータを扱う場合は、ページネーションの実装を検討してください。
+- `.env`ファイルには機密情報が含まれるため、Gitにコミットしないよう注意してください。
+- 本番環境で使用する場合は、適切なセキュリティ対策（HTTPS、認証など）を実装してください。
+- Stripe APIキーは定期的に更新することをお勧めします。
 
-## ライセンス
 
-このプロジェクトは[MITライセンス](LICENSE)の下で公開されています。
-
-## 貢献
-
-プルリクエストは歓迎します。大きな変更を加える場合は、まずissueを開いて変更内容を議論してください。
-
-## 連絡先
-
-質問や提案がある場合は、[issues](https://github.com/DaisukeHori/stripe-api-fastapi/issues)を開いてください。
+ご質問や問題がある場合は、GitHubのIssuesセクションでお問い合わせください。
