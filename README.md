@@ -36,7 +36,7 @@
 git clone [https://github.com/yourusername/stripe-api-fastapi.git](https://github.com/yourusername/stripe-api-fastapi.git)
 cd stripe-api-fastapi
 
-```plaintext
+```
 
 2. 仮想環境を作成し、アクティベートします：
 
@@ -47,7 +47,7 @@ source venv/bin/activate  # Linuxの場合
 
 # venv\Scripts\activate  # Windowsの場合
 
-```plaintext
+```
 
 3. 依存関係をインストールします：
 
@@ -55,7 +55,7 @@ source venv/bin/activate  # Linuxの場合
 
 pip install -r requirements.txt
 
-```plaintext
+```
 
 4. `.env`ファイルを作成し、Stripe APIキーを設定します：
 
@@ -63,7 +63,7 @@ pip install -r requirements.txt
 
 STRIPE_API_KEY=your_stripe_api_key_here
 
-```plaintext
+```
 
 ### Dockerを使用する場合
 
@@ -73,7 +73,7 @@ STRIPE_API_KEY=your_stripe_api_key_here
 
 docker-compose build
 
-```plaintext
+```
 
 2. Dockerコンテナを起動します：
 
@@ -81,7 +81,7 @@ docker-compose build
 
 docker-compose up
 
-```plaintext
+```
 
 ## 使用方法
 
@@ -93,7 +93,7 @@ docker-compose up
 
 uvicorn app.main:app --reload
 
-```plaintext
+```
 
 2. ブラウザで `http://localhost:8000/docs` にアクセスし、Swagger UIを使用してAPIをテストします。
 
@@ -105,7 +105,7 @@ uvicorn app.main:app --reload
 
 docker-compose up
 
-```plaintext
+```
 
 2. ブラウザで `http://localhost:8000/docs` にアクセスし、Swagger UIを使用してAPIをテストします。
 
@@ -125,7 +125,7 @@ docker-compose up
 
 pytest
 
-```plaintext
+```
 
 ## 注意事項
 
