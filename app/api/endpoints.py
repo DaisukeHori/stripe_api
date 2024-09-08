@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Query, HTTPException
+from fastapi import APIRouter, Query, HTTPException, Depends
 from app.models.stripe_models import (
     CustomerResponse, SubscriptionResponse, InvoiceResponse,
     PaymentResponse, ProductResponse, StripeError
@@ -8,6 +8,7 @@ from app.services.stripe_service import (
     get_payments, get_products
 )
 from app.core.config import settings
+from app.core.auth import verify_auth_key
 import stripe
 import logging
 
@@ -28,16 +29,16 @@ def handle_stripe_error(e: stripe.error.StripeError):
     else:
         raise HTTPException(status_code=500, detail=error_msg)
 
-@router.get("/customers/{email}", response_model=CustomerResponse, responses={400: {"model": StripeError}})
-def get_customers(email: str):
+@router.get("/customers/{email}", response_model=CustomerResponse, responses={400: {"model": StripeError}, 401: {"model": StripeError}})
+def get_customers(email: str, auth_key: str = Depends(verify_auth_key)):
     try:
         customers = get_customers_by_email(email)
         return CustomerResponse(customers=customers)
     except stripe.error.StripeError as e:
         handle_stripe_error(e)
 
-@router.get("/subscriptions/{email}", response_model=SubscriptionResponse, responses={400: {"model": StripeError}})
-def get_customer_subscriptions(email: str, limit: int = Query(50, le=settings.MAX_LIMIT)):
+@router.get("/subscriptions/{email}", response_model=SubscriptionResponse, responses={400: {"model": StripeError}, 401: {"model": StripeError}})
+def get_customer_subscriptions(email: str, limit: int = Query(50, le=settings.MAX_LIMIT), auth_key: str = Depends(verify_auth_key)):
     try:
         customers = get_customers_by_email(email)
         all_subscriptions = []
@@ -48,8 +49,8 @@ def get_customer_subscriptions(email: str, limit: int = Query(50, le=settings.MA
     except stripe.error.StripeError as e:
         handle_stripe_error(e)
 
-@router.get("/invoices/{email}", response_model=InvoiceResponse, responses={400: {"model": StripeError}})
-def get_customer_invoices(email: str, limit: int = Query(50, le=settings.MAX_LIMIT)):
+@router.get("/invoices/{email}", response_model=InvoiceResponse, responses={400: {"model": StripeError}, 401: {"model": StripeError}})
+def get_customer_invoices(email: str, limit: int = Query(50, le=settings.MAX_LIMIT), auth_key: str = Depends(verify_auth_key)):
     try:
         customers = get_customers_by_email(email)
         all_invoices = []
@@ -60,8 +61,8 @@ def get_customer_invoices(email: str, limit: int = Query(50, le=settings.MAX_LIM
     except stripe.error.StripeError as e:
         handle_stripe_error(e)
 
-@router.get("/payments/{email}", response_model=PaymentResponse, responses={400: {"model": StripeError}})
-def get_customer_payments(email: str, limit: int = Query(50, le=settings.MAX_LIMIT)):
+@router.get("/payments/{email}", response_model=PaymentResponse, responses={400: {"model": StripeError}, 401: {"model": StripeError}})
+def get_customer_payments(email: str, limit: int = Query(50, le=settings.MAX_LIMIT), auth_key: str = Depends(verify_auth_key)):
     try:
         customers = get_customers_by_email(email)
         all_payments = []
@@ -72,8 +73,8 @@ def get_customer_payments(email: str, limit: int = Query(50, le=settings.MAX_LIM
     except stripe.error.StripeError as e:
         handle_stripe_error(e)
 
-@router.get("/products/{email}", response_model=ProductResponse, responses={400: {"model": StripeError}})
-def get_customer_products(email: str, limit: int = Query(50, le=settings.MAX_LIMIT)):
+@router.get("/products/{email}", response_model=ProductResponse, responses={400: {"model": StripeError}, 401: {"model": StripeError}})
+def get_customer_products(email: str, limit: int = Query(50, le=settings.MAX_LIMIT), auth_key: str = Depends(verify_auth_key)):
     try:
         customers = get_customers_by_email(email)
         all_products = set()
